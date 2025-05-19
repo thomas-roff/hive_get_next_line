@@ -17,27 +17,30 @@ char	*get_next_line(int fd)
 {
 	char	*buf;
 	char	*line;
+	size_t	i;
 
-	buf = malloc(BUFFER_SIZE * sizeof(char));
+	buf = malloc((BUFFER_SIZE + 1) * sizeof(char));
 	if (!buf)
 		return (NULL);
-	line = malloc(1 * sizeof(char));
-	if (!line)
-		return (NULL);
-	line[0] = '\0';
-	while (*buf != '\n')
+	i = 0;
+	while (i < BUFFER_SIZE)
 	{
-		read(fd, buf, 1);
-		if (*buf == '\0')
-			return (ft_strjoin(line, "\0"));
-		line = ft_strjoin(line, buf);
+		read(fd, &buf[i], 1);
+		if (buf[i] == '\n' || buf[i] == '\0')
+		{
+			line = ft_strdup(buf);
+			free(buf);
+			return (line);
+		}
+		i++;
 	}
-	return (line);
+	return (NULL);
 }
 
 int	main(int argc, char **argv)
 {
-	int	fd;
+	int		fd;
+	char	*temp;
 
 	if (argc == 1)
 		fd = STDIN_FILENO;
@@ -45,10 +48,9 @@ int	main(int argc, char **argv)
 		fd = open(argv[1], O_RDONLY);
 	if (fd < 0)
 		exit (1);
-	printf("Line is: %s", get_next_line(fd));
-	printf("Line is: %s", get_next_line(fd));
-	printf("Line is: %s", get_next_line(fd));
-	printf("Line is: %s", get_next_line(fd));
+	temp = get_next_line(fd);
+	printf("Line is: %s", temp);
+	free(temp);
 	if (close(fd) < 0)
 		exit (1);
 	return (0);

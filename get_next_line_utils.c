@@ -40,6 +40,37 @@ char	*ft_strchr(const char *s, int c)
 	return (NULL);
 }
 
+size_t	ft_strlcpy(char *dst, const char *src, size_t size)
+{
+	size_t	i;
+	size_t	n;
+
+	i = 0;
+	n = ft_strlen(src);
+	if (!dst || !src || size == 0)
+		return (n);
+	while (i < size - 1 && src[i] != '\0')
+	{
+		dst[i] = src[i];
+		i++;
+	}
+	dst[i] = '\0';
+	return (n);
+}
+
+char	*ft_strdup(const char *s)
+{
+	size_t	len;
+	char	*sc;
+
+	len = ft_strlen(s);
+	sc = malloc((len + 1) * sizeof(char));
+	if (!sc)
+		return (NULL);
+	ft_strlcpy(sc, s, len + 1);
+	return (sc);
+}
+
 char	*ft_strjoin(char const *s1, char const *s2)
 {
 	char	*str;
