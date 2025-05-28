@@ -22,52 +22,23 @@ size_t	ft_strlen(const char *s)
 	return (i);
 }
 
-char	*ft_strchr(const char *s, int c)
-{
-	char	*sc;
-	char	cc;
-
-	sc = (char *)s;
-	cc = (char)c;
-	if (cc == '\0')
-		return (sc + ft_strlen(sc));
-	while (*sc != '\0')
-	{
-		if (*sc == cc)
-			return (sc);
-		sc++;
-	}
-	return (NULL);
-}
-
-size_t	ft_strlcpy(char *dst, const char *src, size_t size)
-{
-	size_t	i;
-	size_t	n;
-
-	i = 0;
-	n = ft_strlen(src);
-	if (!dst || !src || size == 0)
-		return (n);
-	while (i < size - 1 && src[i] != '\0')
-	{
-		dst[i] = src[i];
-		i++;
-	}
-	dst[i] = '\0';
-	return (n);
-}
-
 char	*ft_strdup(const char *s)
 {
 	size_t	len;
 	char	*sc;
+	size_t	i;
 
 	len = ft_strlen(s);
 	sc = malloc((len + 1) * sizeof(char));
 	if (!sc)
 		return (NULL);
-	ft_strlcpy(sc, s, len + 1);
+	i = 0;
+	while (i < len && s[i] != '\0')
+	{
+		sc[i] = s[i];
+		i++;
+	}
+	sc[i] = '\0';
 	return (sc);
 }
 

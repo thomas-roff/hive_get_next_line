@@ -13,12 +13,13 @@
 #include "get_next_line.h"
 #include <stdio.h>
 
-typedef struct	s_line {
+typedef struct s_line {
 	char	*str;
 	int		newline;
+	int		count;
 }	t_line;
 
-char	*str_append(char *s1, char *s2, int	len)
+char	*str_append(char *s1, char *s2, int len)
 {
 	char	*new;
 	size_t	i;
@@ -39,12 +40,37 @@ char	*str_append(char *s1, char *s2, int	len)
 	return (new);
 }
 
+int	ft_readbuffer(t_line *temp, char *buf, char *leftover, int fd)
+{
+	int	i;
+
+	i = 0;
+	while (i < BUFFER_SIZE)
+	{
+		read(fd, &buf[i], 1);
+		if (buf[i] == '\n' || buf[i] == '\0')
+		{
+			buf[i + 1] = '\0';
+			temp->str = ft_strjoin(leftover, buf);
+			temp->newline = 1;
+			free(buf);
+			free(leftover);
+			leftover = NULL;
+			temp->count = i;
+			return (1);
+		}
+		i++;
+	}
+	buf[i] = '\0';
+	temp->count = i;
+	return (0);
+}
+
 t_line	find_newline(int fd)
 {
 	t_line		temp;
 	static char	*leftover;
 	char		*buf;
-	size_t		i;
 
 	buf = malloc((BUFFER_SIZE + 1) * sizeof(char));
 	if (!leftover)
@@ -52,24 +78,9 @@ t_line	find_newline(int fd)
 		leftover = malloc(sizeof(char));
 		leftover[0] = '\0';
 	}
-	i = 0;
-	while (i < BUFFER_SIZE)
-	{
-		read(fd, &buf[i], 1);
-		if(buf[i] == '\n' || buf[i] == '\0')
-		{
-			buf[i + 1] = '\0';
-			temp.str = ft_strjoin(leftover, buf);
-			temp.newline = 1;
-			free(buf);
-			free(leftover);
-			leftover = NULL;
-			return (temp);
-		}
-		i++;
-	}
-	buf[i] = '\0';
-	leftover = str_append(leftover, buf, i);
+	if (ft_readbuffer(&temp, buf, leftover, fd) == 1)
+		return (temp);
+	leftover = str_append(leftover, buf, temp.count);
 	temp.newline = 0;
 	free(buf);
 	return (temp);
