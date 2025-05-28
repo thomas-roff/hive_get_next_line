@@ -25,10 +25,7 @@ char	*str_append(char *s1, char *s2, int len)
 	size_t	i;
 
 	if (!s1)
-	{
-		free(s1);
 		return (ft_strdup(s2));
-	}
 	i = 0;
 	while (s1[i])
 		i++;
@@ -53,9 +50,6 @@ int	ft_readbuffer(t_line *temp, char *buf, char *leftover, int fd)
 			buf[i + 1] = '\0';
 			temp->str = ft_strjoin(leftover, buf);
 			temp->newline = 1;
-			free(buf);
-			free(leftover);
-			leftover = NULL;
 			temp->count = i;
 			return (1);
 		}
@@ -73,13 +67,17 @@ t_line	find_newline(int fd)
 	char		*buf;
 
 	buf = malloc((BUFFER_SIZE + 1) * sizeof(char));
+	if (!buf)
+		return ((t_line){NULL, 0, 0});
 	if (!leftover)
-	{
-		leftover = malloc(sizeof(char));
-		leftover[0] = '\0';
-	}
+		leftover = ft_strdup("");
 	if (ft_readbuffer(&temp, buf, leftover, fd) == 1)
+	{
+		free(leftover);
+		leftover = NULL;
+		free(buf);
 		return (temp);
+	}
 	leftover = str_append(leftover, buf, temp.count);
 	temp.newline = 0;
 	free(buf);
