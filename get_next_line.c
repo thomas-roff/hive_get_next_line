@@ -13,105 +13,125 @@
 #include "get_next_line.h"
 #include <stdio.h>
 
-typedef struct s_line {
-	char	*str;
-	int		newline;
-	int		count;
-}	t_line;
-
-char	*str_append(char *s1, char *s2, int len)
+char	*ft_join_free(char *temp, char *str)
 {
-	char	*new;
+	char	*res;
+
+	res = ft_strjoin(temp, str);
+	free(temp);
+	return (res);
+}
+
+char	*ft_leftover(char *temp)
+{
+	char	*res;
+	size_t	i;
+	size_t	j;
+
+	i = 0;
+	while (temp[i] && temp[i] != '\n')
+		i++;
+	if (!temp[i])
+	{
+		free(temp);
+		return (NULL);
+	}
+	i++;
+	res = ft_calloc((ft_strlen(temp) - i + 1), sizeof(char));
+	j = 0;
+	while (temp[i])
+		res[j++] = temp[i++];
+	free(temp);
+	res[j] = '\0';
+	return (res);
+}
+
+char	*ft_find_line(char *heap)
+{
+	char	*line;
 	size_t	i;
 
-	if (!s1)
-		return (ft_strdup(s2));
 	i = 0;
-	while (s1[i])
+	while (heap[i] && heap[i] != '\n')
 		i++;
-	new = malloc((i + len + 1) * sizeof(char));
-	ft_memcpy(new, s1, i);
-	free(s1);
-	ft_memcpy(new + i, s2, len);
-	new[i + len] = '\0';
-	return (new);
+	line = ft_calloc((i + 2), sizeof(char));
+	i = 0;
+	while (heap[i] && heap[i] != '\n')
+	{
+		line[i] = heap[i];
+		i++;
+	}
+	if (heap[i] == '\n')
+		line[i++] = '\n';
+	line[i] = '\0';
+	return (line);
 }
 
-int	ft_readbuffer(t_line *temp, char *buf, char *leftover, int fd)
+char	*ft_read_file(int fd, char *res)
 {
-	int	i;
+	char	*buffer;
+	int		byte_read;
 
-	i = 0;
-	while (i < BUFFER_SIZE)
+	if (!res)
+		res = ft_calloc(1, 1);
+	buffer = ft_calloc((BUFFER_SIZE + 1), sizeof(char));
+	byte_read = 1;
+	while (byte_read > 0)
 	{
-		read(fd, &buf[i], 1);
-		if (buf[i] == '\n' || buf[i] == '\0')
+		byte_read = read(fd, buffer, BUFFER_SIZE);
+		if (byte_read == -1)
 		{
-			buf[i + 1] = '\0';
-			temp->str = ft_strjoin(leftover, buf);
-			temp->newline = 1;
-			temp->count = i;
-			return (1);
+			free(buffer);
+			return (NULL);
 		}
-		i++;
+		buffer[byte_read] = '\0';
+		res = ft_join_free(res, buffer);
+		if (ft_strchr(res, '\n'))
+			break ;
 	}
-	buf[i] = '\0';
-	temp->count = i;
-	return (0);
-}
-
-t_line	find_newline(int fd)
-{
-	t_line		temp;
-	static char	*leftover;
-	char		*buf;
-
-	buf = malloc((BUFFER_SIZE + 1) * sizeof(char));
-	if (!buf)
-		return ((t_line){NULL, 0, 0});
-	if (!leftover)
-		leftover = ft_strdup("");
-	if (ft_readbuffer(&temp, buf, leftover, fd) == 1)
-	{
-		free(leftover);
-		leftover = NULL;
-		free(buf);
-		return (temp);
-	}
-	leftover = str_append(leftover, buf, temp.count);
-	temp.newline = 0;
-	free(buf);
-	return (temp);
+	free(buffer);
+	return (res);
 }
 
 char	*get_next_line(int fd)
 {
-	t_line		temp;
+	static char	*heap;
 	char		*line;
 
-	temp.newline = 0;
-	while (temp.newline == 0)
-		temp = find_newline(fd);
-	line = ft_strdup(temp.str);
-	free(temp.str);
+	if (fd < 0 || fd > FD_SETSIZE || BUFFER_SIZE < 1 || read(fd, 0, 0) < 0)
+		return (NULL);
+	heap = ft_read_file(fd, heap);
+	if (!heap || heap[0] == '\0')
+	{
+		free(heap);
+		heap = NULL;
+		return (NULL);
+	}
+	line = ft_find_line(heap);
+	heap = ft_leftover(heap);
 	return (line);
 }
 
-int	main(int argc, char **argv)
-{
-	int		fd;
-	char	*temp;
-
-	if (argc == 1)
-		fd = STDIN_FILENO;
-	if (argc >= 2)
-		fd = open(argv[1], O_RDONLY);
-	if (fd < 0)
-		exit (1);
-	temp = get_next_line(fd);
-	printf("Line is: %s", temp);
-	free(temp);
-	if (close(fd) < 0)
-		exit (1);
-	return (0);
-}
+// int	main(int argc, char **argv)
+// {
+// 	int		fd;
+// 	char	*line;
+// 	char	*filename;
+//
+// 	if (argc == 1)
+// 		fd = STDIN_FILENO;
+// 	if (argc >= 2)
+// 	{
+// 		fd = open(argv[1], O_RDONLY);
+// 		filename = argv[1];
+// 		printf("%s\n", filename);
+// 	}
+// 	line = get_next_line(fd);
+// 	while (line)
+// 	{
+// 		printf("%s", line);
+// 		line = get_next_line(fd);
+// 	}
+// 	free(line);
+// 	return (0);
+// }

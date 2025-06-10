@@ -22,10 +22,19 @@
 #  define BUFFER_SIZE 1
 # endif
 
+typedef struct s_line
+{
+	char	*str;
+	int		newline;
+	int		count;
+}	t_line;
+
 char	*get_next_line(int fd);
 size_t	ft_strlen(const char *s);
 char	*ft_strjoin(char const *s1, char const *s2);
 void	*ft_memcpy(void *dest, const void *src, size_t n);
 char	*ft_strdup(const char *s);
+void	*ft_calloc(size_t nmemb, size_t size);
+char	*ft_strchr(const char *s, int c);
 
 #endif
