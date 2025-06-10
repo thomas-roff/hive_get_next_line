@@ -1,16 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*   get_next_line_bonus.c                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: thblack- <thblack-@student.hive.fi>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/15 19:52:38 by thblack-          #+#    #+#             */
-/*   Updated: 2025/06/10 16:00:42 by thblack-         ###   ########.fr       */
+/*   Updated: 2025/06/10 16:23:03 by thblack-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "get_next_line.h"
+#include "get_next_line_bonus.h"
 #include <stdio.h>
 
 char	*ft_join_free(char *temp, char *str)
@@ -95,43 +95,62 @@ char	*ft_read_file(int fd, char *res)
 
 char	*get_next_line(int fd)
 {
-	static char	*heap;
+	static char	*heap[FD_MAX];
 	char		*line;
 
 	if (fd < 0 || fd > FD_SETSIZE || BUFFER_SIZE < 1 || read(fd, 0, 0) < 0)
 		return (NULL);
-	heap = ft_read_file(fd, heap);
-	if (!heap || heap[0] == '\0')
+	heap[fd] = ft_read_file(fd, heap[fd]);
+	if (!heap[fd] || heap[fd][0] == '\0')
 	{
-		free(heap);
-		heap = NULL;
+		free(heap[fd]);
+		heap[fd] = NULL;
 		return (NULL);
 	}
-	line = ft_find_line(heap);
-	heap = ft_leftover(heap);
+	line = ft_find_line(heap[fd]);
+	heap[fd] = ft_leftover(heap[fd]);
 	return (line);
 }
 
 int	main(int argc, char **argv)
 {
 	int		fd;
+	int		i;
 	char	*line;
-	char	*filename;
 
 	if (argc == 1)
-		fd = STDIN_FILENO;
+	{
+	 	fd = STDIN_FILENO;
+		line = get_next_line(fd);
+		while (line)
+		{
+			printf("%s", line);
+			line = get_next_line(fd);
+		}
+		free(line);
+		return (0);
+	}
+	i = 1;
 	if (argc >= 2)
 	{
-		fd = open(argv[1], O_RDONLY);
-		filename = argv[1];
-		printf("%s\n", filename);
+		while (i < argc)
+		{
+			open(argv[i], O_RDONLY);
+			i++;
+		}
 	}
-	line = get_next_line(fd);
-	while (line)
+	i = 1;
+	while (i < argc)
 	{
-		printf("%s", line);
+		fd = i + 2;
 		line = get_next_line(fd);
+		while (line)
+		{
+			printf("%s", line);
+			line = get_next_line(fd);
+		}
+		free(line);
+		i++;
 	}
-	free(line);
 	return (0);
 }
