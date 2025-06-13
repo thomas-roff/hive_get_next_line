@@ -10,8 +10,8 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef GET_NEXT_LINE_H
-# define GET_NEXT_LINE_H
+#ifndef GET_NEXT_LINE_BONUS_H
+# define GET_NEXT_LINE_BONUS_H
 
 # include <stdlib.h>
 # include <stddef.h>
@@ -24,7 +24,7 @@
 # endif
 
 # ifndef FD_MAX
-#  define FD_MAX 10
+#  define FD_MAX 1024
 # endif
 
 char	*get_next_line(int fd);

@@ -31,13 +31,11 @@ char	*ft_leftover(char *temp)
 	i = 0;
 	while (temp[i] && temp[i] != '\n')
 		i++;
-	if (!temp[i])
-	{
-		free(temp);
-		return (NULL);
-	}
-	i++;
+	if (temp[i] == '\n')
+		i++;
 	res = ft_calloc((ft_strlen(temp) - i + 1), sizeof(char));
+	if (!res)
+		return (free(temp), NULL);
 	j = 0;
 	while (temp[i])
 		res[j++] = temp[i++];
@@ -55,6 +53,8 @@ char	*ft_find_line(char *heap)
 	while (heap[i] && heap[i] != '\n')
 		i++;
 	line = ft_calloc((i + 2), sizeof(char));
+	if (!line)
+		return (NULL);
 	i = 0;
 	while (heap[i] && heap[i] != '\n')
 	{
@@ -74,23 +74,25 @@ char	*ft_read_file(int fd, char *res)
 
 	if (!res)
 		res = ft_calloc(1, 1);
+	if (!res)
+		return (NULL);
 	buffer = ft_calloc((BUFFER_SIZE + 1), sizeof(char));
+	if (!buffer)
+		return (free(res), NULL);
 	byte_read = 1;
 	while (byte_read > 0)
 	{
 		byte_read = read(fd, buffer, BUFFER_SIZE);
-		if (byte_read == -1)
-		{
-			free(buffer);
-			return (NULL);
-		}
+		if (byte_read < 0)
+			return (free(res), free(buffer), NULL);
 		buffer[byte_read] = '\0';
 		res = ft_join_free(res, buffer);
+		if (!res)
+			return (free(buffer), NULL);
 		if (ft_strchr(res, '\n'))
 			break ;
 	}
-	free(buffer);
-	return (res);
+	return (free(buffer), res);
 }
 
 char	*get_next_line(int fd)
@@ -98,59 +100,70 @@ char	*get_next_line(int fd)
 	static char	*heap[FD_MAX];
 	char		*line;
 
-	if (fd < 0 || fd > FD_SETSIZE || BUFFER_SIZE < 1 || read(fd, 0, 0) < 0)
+	if (fd < 0 || fd >= 1024 || BUFFER_SIZE < 1)
 		return (NULL);
 	heap[fd] = ft_read_file(fd, heap[fd]);
-	if (!heap[fd] || heap[fd][0] == '\0')
+	if (!heap[fd])
+		return (NULL);
+	if (heap[fd][0] == '\0')
 	{
-		free(heap[fd]);
+		if (heap[fd])
+			free(heap[fd]);
 		heap[fd] = NULL;
 		return (NULL);
 	}
 	line = ft_find_line(heap[fd]);
+	if (!line)
+		return (free(heap[fd]), NULL);
 	heap[fd] = ft_leftover(heap[fd]);
+	if (!heap[fd])
+		return (free(line), NULL);
 	return (line);
 }
 
-int	main(int argc, char **argv)
-{
-	int		fd;
-	int		i;
-	char	*line;
-
-	if (argc == 1)
-	{
-	 	fd = STDIN_FILENO;
-		line = get_next_line(fd);
-		while (line)
-		{
-			printf("%s", line);
-			line = get_next_line(fd);
-		}
-		free(line);
-		return (0);
-	}
-	i = 1;
-	if (argc >= 2)
-	{
-		while (i < argc)
-		{
-			open(argv[i], O_RDONLY);
-			i++;
-		}
-	}
-	i = 1;
-	while (i < argc)
-	{
-		fd = i + 2;
-		line = get_next_line(fd);
-		while (line)
-		{
-			printf("%s", line);
-			line = get_next_line(fd);
-		}
-		free(line);
-		i++;
-	}
-	return (0);
-}
+// int	main(int argc, char **argv)
+// {
+// 	int		fd;
+// 	int		i;
+// 	char	*line;
+//
+// 	if (argc == 1)
+// 	{
+// 	 	fd = STDIN_FILENO;
+// 		line = get_next_line(fd);
+// 		while (line)
+// 		{
+// 			printf("%s", line);
+// 			free(line);
+// 			line = get_next_line(fd);
+// 		}
+// 		free(line);
+// 		return (0);
+// 	}
+// 	i = 1;
+// 	if (argc >= 2)
+// 	{
+// 		while (i < argc)
+// 		{
+// 			open(argv[i], O_RDONLY);
+// 			i++;
+// 		}
+// 	}
+// 	i = 1;
+// 	while (i < argc)
+// 	{
+// 		fd = i + 2;
+// 		line = get_next_line(fd);
+// 		while (line)
+// 		{
+// 			printf("%s", line);
+// 			free(line);
+// 			line = get_next_line(fd);
+// 		}
+// 		free(line);
+// 		i++;
+// 	}
+// 	return (0);
+// }
+//
+//
